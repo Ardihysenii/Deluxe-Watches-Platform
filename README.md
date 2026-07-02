@@ -1,46 +1,21 @@
-# Deluxe Watches Platform
+DELUXE is a digital platform designed for luxury watch enthusiasts, collectors, and retailers to manage, track, and trade high-end timepieces.
 
-Spring Boot e-commerce site for Deluxe watches (catalog, cart, checkout, EmailJS order emails, Neon PostgreSQL).
+The platform operates as a centralized hub that bridges the gap between personal inventory tracking and real-world market intelligence.
 
-## Run locally
+Core Ecosystem
+Digital Watch Vault: A comprehensive collection management system. Users catalog their timepieces by reference numbers, serial numbers, purchase history, and physical condition, moving away from unstructured spreadsheets.
 
-```bash
-cp .env.example .env
-# Fill in Neon + EmailJS keys in .env
-./mvnw spring-boot:run
-```
+Market Intelligence Engine: A data-driven tracker that aggregates historical sales and current market values. It provides users with real-time valuation updates and portfolio performance analytics for luxury watch brands.
 
-Open http://localhost:8080
+Lifecycle & Service Ledger: A dedicated maintenance log that tracks service histories, polish records, factory component replacements, and water-resistance certifications to preserve the watch's provenance and resale value.
 
-## Deploy on Northflank
+Verified Marketplace: A secure trading environment featuring automated escrow verification pipelines, matching verified buyers with authenticated sellers to eliminate counterfeit risks.
 
-1. Push this repo to GitHub (`main` branch).
-2. In [Northflank](https://app.northflank.com), create a **Combined service**.
-3. Connect GitHub repo `Ardihysenii/Deluxe-Watches-Platform`, branch `main`.
-4. Build type: **Dockerfile** (root `/Dockerfile`).
-5. **Public port**: HTTP **8080**, publicly expose.
-6. Add environment variables (Secrets):
+System Architecture
+The platform relies on a split-tier architecture designed for high transactional integrity and premium user interfaces:
 
-| Variable | Description |
-|----------|-------------|
-| `NEON_DATABASE_URL` | JDBC URL, e.g. `jdbc:postgresql://ep-xxx.neon.tech/neondb?sslmode=require` |
-| `NEON_DATABASE_USER` | Neon DB user |
-| `NEON_DATABASE_PASSWORD` | Neon DB password |
-| `EMAILJS_SERVICE_ID` | EmailJS service ID |
-| `EMAILJS_PUBLIC_KEY` | EmailJS public key |
-| `EMAILJS_PRIVATE_KEY` | EmailJS private key |
-| `EMAILJS_CUSTOMER_TEMPLATE_ID` | Customer thank-you template |
-| `EMAILJS_ADMIN_TEMPLATE_ID` | Admin notification template |
-| `DELUXE_ADMIN_EMAIL` | Admin inbox for new orders |
-| `DELUXE_SITE_BASE_URL` | Public site URL, e.g. `https://your-service.northflank.app` |
-| `DELUXE_EMAIL_IMAGE_BASE_URL` | Same as site URL (for email watch images) |
-| `SPRING_SECURITY_PASSWORD` | Optional admin password |
+User Interface: A minimalist, high-fidelity web frontend built on modern JavaScript frameworks optimized for fluid visual browsing and data presentation.
 
-7. Deploy. After first deploy, set `DELUXE_SITE_BASE_URL` and `DELUXE_EMAIL_IMAGE_BASE_URL` to your Northflank public URL and redeploy.
+Core Services: A secure, robust backend built on Java and the Spring Boot framework to handle sensitive transaction logic, marketplace escrow rules, and external market data aggregation.
 
-## Stack
-
-- Java 21, Spring Boot 3.2
-- PostgreSQL (Neon)
-- Thymeleaf + static frontend
-- EmailJS for order emails
+Data Layer: A relational PostgreSQL database that guarantees ACID compliance for financial logs, user ownership records, and chronological market data tracking.
