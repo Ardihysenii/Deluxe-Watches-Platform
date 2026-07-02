@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="sq" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="footer-inner">
+    <div class="alfa-footer-inner">
+        <div class="alfa-footer-brand">
+            <a th:href="@{/}" class="alfa-footer-logo-link deluxe-footer-wordmark">DELUXE</a>
+            <p class="alfa-footer-tagline">Crafted for those who value precision, heritage, and timeless design.</p>
+        </div>
+
+        <div class="alfa-footer-columns">
+            <div class="alfa-footer-col">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a th:href="@{/collection}">Collection</a></li>
+                    <li><a th:href="@{/}">Home</a></li>
+                    <li><a th:href="@{/collection}">New Arrivals</a></li>
+                </ul>
+            </div>
+            <div class="alfa-footer-col">
+                <h4>Client Care</h4>
+                <ul>
+                    <li><a href="#">Authenticity Guarantee</a></li>
+                    <li><a href="#">Shipping &amp; Delivery</a></li>
+                    <li><a href="#">Returns &amp; Warranty</a></li>
+                </ul>
+            </div>
+            <div class="alfa-footer-col">
+                <h4>Connect</h4>
+                <ul>
+                    <li><a href="https://www.instagram.com/deluxewatchess/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Store Locator</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="alfa-footer-bottom">
+        <p>&copy; 2026 Deluxe. All rights reserved.</p>
+        <div class="alfa-footer-legal">
+            <a href="#">Privacy</a>
+            <span aria-hidden="true">·</span>
+            <a href="#">Terms</a>
+        </div>
+    </div>
+</th:block>
+
+<footer th:fragment="site-footer" class="alfa-site-footer">
+    <th:block th:replace="~{fragments/footer :: footer-inner}"></th:block>
+</footer>
+
+<footer th:fragment="site-footer-dark" class="alfa-site-footer alfa-site-footer--dark">
+    <th:block th:replace="~{fragments/footer :: footer-inner}"></th:block>
+</footer>
+</body>
+</html>
+

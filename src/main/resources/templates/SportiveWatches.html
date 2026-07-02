@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Watch Showcase - Sportive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Reset */
+        *{ margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: center;
+            gap: 2rem;
+        }
+        .left {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .stars { color: #ccc; font-size: 0.9rem; letter-spacing: 0.1rem; }
+        .title { font-size: 1.8rem; font-weight: 600; }
+        .price { color: #aaa; font-weight: 500; }
+        .btn {
+            margin-top: 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: fit-content;
+            text-decoration: none; /* FIXED: Heq nënvizimin */
+            display: inline-block;
+        }
+        .btn:hover { background-color: #fff; color: #000; }
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .watch-frame-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .watch-frame {
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 3 / 4;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+        }
+        .watch-frame img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            transition: opacity 0.3s ease;
+            user-select: none;
+            -webkit-user-drag: none;
+            touch-action: pan-y;
+        }
+        .dots {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #555;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        .dot.active { background-color: #fff; }
+        .right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 1rem;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        .right svg {
+            width: 60px;
+            height: 60px;
+            stroke: #aaa;
+            margin-bottom: 1rem;
+        }
+        .learn-more {
+            margin-top: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.1rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .learn-more:hover { color: #fff; }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; text-align: center; }
+            .left, .right { align-items: center; }
+            .watch-frame { width: 100%; max-width: 300px; aspect-ratio: 3 / 4; }
+        }
+
+        .back-to-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            animation: shimmer 3s infinite linear;
+        }
+        .back-to-home svg { stroke: #C0C0C0; width: 100%; height: 100%; }
+
+        @keyframes shimmer {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.8); }
+            100% { filter: brightness(1); }
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .video-background video { width: 100%; height: 100%; object-fit: cover; }
+
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+        }
+        .image-modal img { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 10px; }
+        .image-modal .close { position: absolute; top: 30px; right: 40px; font-size: 40px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+<a th:href="@{/}" class="back-to-home" title="Go Home">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="1.5" d="M11 6L5 12M5 12L11 18M5 12H19"/>
+    </svg>
+</a>
+
+<div class="container">
+    <div class="left">
+        <div class="stars">★ ★ ★ ★ ☆</div>
+        <div class="title">Richard Mille Sport</div>
+        <div class="price">$249.99</div>
+        <a th:href="@{/buy}" class="btn">Buy</a>
+        <button class="btn add-to-cart" data-id="sport1">Add to Cart</button>
+    </div>
+
+    <div class="center">
+        <div class="watch-frame-container">
+            <div class="watch-frame">
+                <img src="" alt="Watch">
+            </div>
+            <div class="dots">
+                <span class="dot active" onclick="goToSlide(0)"></span>
+                <span class="dot" onclick="goToSlide(1)"></span>
+                <span class="dot" onclick="goToSlide(2)"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="right">
+        <svg fill="none" stroke-width="1.5" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2 2m5-2a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <p>Personalized watches are a job of quality and commitment.</p>
+        <div class="learn-more">Learn More</div>
+    </div>
+</div>
+
+<div id="imageModal" class="image-modal">
+    <span class="close">&times;</span>
+    <img th:src="@{/img/ContractOriginal.png}" alt="Popup Image" />
+</div>
+
+<div class="video-background">
+    <video autoplay muted loop playsinline>
+        <source th:src="@{/videos/TISSOT _ Supersport.mp4}" type="video/mp4">
+    </video>
+</div>
+
+<script th:inline="javascript">
+    /* FIXED: Rrugët e imazheve për static folder */
+    const images = [
+        "/img/unnamed (4)-nobg.png",
+        "/img/unnamed (5)-nobg.png",
+        "/img/unnamed (5.2)-nobg.png"
+    ];
+
+    const watchData = [
+        {
+            title: "Richard Mille",
+            price: "$249.99",
+            stars: "★ ★ ★ ★ ☆",
+            description: "Personalized watches are a job of quality and commitment. Each piece is the result of a work of co-creation."
+        },
+        {
+            title: "Garmin Fenix 7S",
+            price: "$399.99",
+            stars: "★ ★ ★ ★ ★",
+            description: "This chronograph combines sport and luxury, made for precision."
+        },
+        {
+            title: "Coros Pace Pro",
+            price: "$599.99",
+            stars: "★ ★ ★ ★ ☆",
+            description: "Inspired by modern performance, this piece brings a perfect balance."
+        }
+    ];
+
+    let currentIndex = 0;
+    const img = document.querySelector(".watch-frame img");
+    const dots = document.querySelectorAll(".dot");
+    const titleEl = document.querySelector(".title");
+    const priceEl = document.querySelector(".price");
+    const starsEl = document.querySelector(".stars");
+    const descEl = document.querySelector(".right p");
+
+    function showImage(index) {
+        img.style.opacity = 0;
+        setTimeout(() => {
+            img.src = images[index];
+            img.style.opacity = 1;
+        }, 150);
+        dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
+        titleEl.textContent = watchData[index].title;
+        priceEl.textContent = watchData[index].price;
+        starsEl.textContent = watchData[index].stars;
+        descEl.textContent = watchData[index].description;
+    }
+
+    function goToSlide(index) { currentIndex = index; showImage(currentIndex); }
+    showImage(currentIndex);
+
+    // Modal logic
+    const modal = document.getElementById("imageModal");
+    document.querySelector(".learn-more").onclick = () => { modal.style.display = "flex"; };
+    document.querySelector(".close").onclick = () => { modal.style.display = "none"; };
+
+    // Add to Cart
+    document.querySelector('.add-to-cart').addEventListener('click', () => {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push({
+            name: watchData[currentIndex].title,
+            price: parseFloat(watchData[currentIndex].price.replace('$', '')),
+            image: images[currentIndex]
+        });
+        localStorage.setItem('cart', JSON.stringify(cart));
+        alert('Added to Cart');
+    });
+
+    // Buy logic
+    document.querySelector('.btn').addEventListener('click', () => {
+        const selectedWatch = {
+            name: watchData[currentIndex].title,
+            price: parseFloat(watchData[currentIndex].price.replace('$', '')),
+            image: images[currentIndex]
+        };
+        localStorage.setItem('selectedWatch', JSON.stringify(selectedWatch));
+    });
+
+    /* ==========================================
+   KODI PËR SWIPE (DRAG) QË TË NDRROHEN ORAT
+   ========================================== */
+    let isDown = false;
+    let startX = 0;
+    const frame = document.querySelector(".watch-frame");
+
+    // Kur e klikon (ose prek me gisht)
+    frame.addEventListener("pointerdown", (e) => {
+        isDown = true;
+        startX = e.clientX;
+        frame.style.cursor = "grabbing";
+    });
+
+    // Kur e lëshon klikimin
+    window.addEventListener("pointerup", (e) => {
+        if (!isDown) return;
+
+        const endX = e.clientX;
+        const delta = endX - startX;
+        const threshold = 50; // Sa pixel duhet të lëvizë për me ndrru oren
+
+        if (delta > threshold) {
+            // Swipe djathtas -> Ora e kaluar
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            showImage(currentIndex);
+        } else if (delta < -threshold) {
+            // Swipe majtas -> Ora tjetër
+            currentIndex = (currentIndex + 1) % images.length;
+            showImage(currentIndex);
+        }
+
+        isDown = false;
+        frame.style.cursor = "grab";
+    });
+
+    // Parandalon zvarritjen e imazhit si file (default browser behavior)
+    img.addEventListener('dragstart', e => e.preventDefault());
+
+    // Lejon lëvizjen e pointerit pa pengesa
+    frame.addEventListener("pointermove", (e) => {
+        if (isDown) e.preventDefault();
+    });
+</script>
+</body>
+</html>

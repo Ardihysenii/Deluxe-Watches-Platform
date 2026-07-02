@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="sq" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+
+  <title>Rolex Collection</title>
+  <link rel="icon" type="img/Logo.png" th:href="@{/img/Logo.png}">
+
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap">
+
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --card-bg: #f5f5f5;
+      --text-main: #212121;
+      --text-secondary: #757575;
+      --rolex-green: #006039;
+      /* Variablat shtese nga product.html */
+      --spb-rolex-green: #006039;
+      --spb-text-main: #1a1a1a;
+      --spb-bg-light: #ffffff;
+    }
+
+    /* Speed Optmization */
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 0; /* Ndryshuar nga 40px ne 0 per t'i lene vend navbar-it fixed */
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    /* --- NAVBAR STYLES (Kopjuar fiks nga product.html) --- */
+    body.menu-open { overflow: hidden !important; }
+    .navbar { background-color: #ffffff !important; border-bottom: 1px solid #e5e5e5; z-index: 1001; position: fixed; top: 0; width: 100%; }
+    .navbar .Menu-Text, .navbar .sss, .navbar #cartBtn, .navbar #searchBtn { color: #1a1a1a !important; }
+    .navbar svg { color: #1a1a1a !important; }
+    .navbar .line { stroke: #1a1a1a !important; }
+    .navbar .Cart svg { fill: #1a1a1a !important; }
+
+    /* Collection navbar — keep cart/search entrance animation (same as menu) */
+    body.collection-page.search-init .navbar .nav-right {
+      z-index: 2;
+      position: relative;
+    }
+
+    body.collection-page #cart-count {
+      display: none;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      margin-left: 4px;
+      background: var(--cart-badge-color, var(--rolex-green)) !important;
+      color: #fff !important;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 18px;
+      text-align: center;
+      border-radius: 999px;
+    }
+
+    /* Collection cart overlay — light elegant theme */
+    .custom-cart-overlay.collection-cart {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      padding: 88px 32px 48px;
+      background: rgba(255, 255, 255, 0.97) !important;
+      backdrop-filter: blur(20px) saturate(1.04);
+      -webkit-backdrop-filter: blur(20px) saturate(1.04);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .custom-cart-overlay.collection-cart.is-open,
+    .custom-cart-overlay.collection-cart[style*="flex"] {
+      display: flex !important;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .collection-cart .custom-cart-close {
+      position: fixed;
+      top: 22px;
+      right: 28px;
+      width: 40px;
+      height: 40px;
+      font-size: 28px;
+      line-height: 1;
+      color: var(--text-main);
+      background: none;
+      border: 1px solid #e5e5e5;
+      border-radius: 50%;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease, border-color 0.2s ease;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .collection-cart .custom-cart-close:hover {
+      opacity: 1;
+      border-color: var(--rolex-green);
+      color: var(--rolex-green);
+    }
+
+    .collection-cart .custom-cart-content {
+      width: 100%;
+      max-width: 980px;
+      display: grid;
+      grid-template-columns: 1fr minmax(280px, 320px);
+      gap: 40px 56px;
+      align-items: start;
+      animation: collectionCartIn 0.4s ease;
+    }
+
+    @keyframes collectionCartIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .collection-cart .custom-cart-title {
+      grid-column: 1 / -1;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 3vw, 1.85rem);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-main);
+      border-bottom: 1px solid #eeeeee;
+      padding-bottom: 18px;
+      margin: 0;
+    }
+
+    .collection-cart .cart-items-container {
+      max-height: min(52vh, 480px);
+      overflow-y: auto;
+      padding-right: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 96, 57, 0.25) transparent;
+    }
+
+    .collection-cart .cart-items-container::-webkit-scrollbar { width: 3px; }
+    .collection-cart .cart-items-container::-webkit-scrollbar-thumb {
+      background: rgba(0, 96, 57, 0.25);
+      border-radius: 999px;
+    }
+
+    .collection-cart .cart-empty-msg {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      font-style: italic;
+    }
+
+    .collection-cart .cart-item-row {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 18px 0;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .collection-cart .cart-item-row img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: var(--card-bg);
+      border-radius: 2px;
+      padding: 6px;
+    }
+
+    .collection-cart .cart-item-info h4 {
+      margin: 0 0 6px;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .collection-cart .cart-item-info p {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--rolex-green);
+    }
+
+    .collection-cart .remove-item-btn {
+      width: 32px;
+      height: 32px;
+      background: none;
+      border: 1px solid #e0e0e0;
+      border-radius: 50%;
+      color: var(--text-secondary);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .collection-cart .remove-item-btn:hover {
+      border-color: var(--rolex-green);
+      color: var(--rolex-green);
+    }
+
+    .collection-cart .custom-cart-summary {
+      background: var(--card-bg);
+      padding: 28px 24px;
+      border: 1px solid #eeeeee;
+      border-radius: 2px;
+      height: fit-content;
+      position: sticky;
+      top: 88px;
+    }
+
+    .collection-cart .custom-cart-summary p,
+    .collection-cart .custom-cart-summary h3 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0 0 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .collection-cart .custom-cart-summary h3 {
+      font-size: 1rem;
+      color: var(--text-main);
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid #e0e0e0;
+      text-transform: none;
+      letter-spacing: 0.3px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+    }
+
+    .collection-cart .custom-cart-summary h3 span {
+      color: var(--rolex-green);
+    }
+
+    .collection-cart .collection-cart-divider {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 16px 0;
+    }
+
+    .collection-cart #buyNowBtn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 16px 20px;
+      background: var(--rolex-green);
+      color: #fff;
+      border: none;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.25s ease, letter-spacing 0.25s ease;
+    }
+
+    .collection-cart #buyNowBtn:hover {
+      background: #004d2e;
+      letter-spacing: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .custom-cart-overlay.collection-cart {
+        padding: 72px 16px 32px;
+      }
+
+      .collection-cart .custom-cart-close {
+        top: 16px;
+        right: 16px;
+      }
+
+      .collection-cart .custom-cart-content {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .collection-cart .custom-cart-summary {
+        position: static;
+      }
+
+      .collection-cart .cart-items-container {
+        max-height: none;
+      }
+
+      .collection-cart .cart-item-row {
+        grid-template-columns: 64px 1fr auto;
+        gap: 14px;
+      }
+
+      .collection-cart .cart-item-row img {
+        width: 64px;
+        height: 64px;
+      }
+    }
+
+    .menu-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: #ffffff; z-index: 1000; display: flex; flex-direction: row;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transform: none !important;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #menuToggle:checked ~ .menu-overlay {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none !important;
+      top: 0 !important;
+    }
+    body.search-active .menu-overlay,
+    body.search-active #menuToggle:checked ~ .menu-overlay {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    /* Search overlay — collection light theme */
+    #searchOverlay.collection-search {
+      backdrop-filter: blur(18px) saturate(1.05) !important;
+      -webkit-backdrop-filter: blur(18px) saturate(1.05) !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      padding-top: 16vh !important;
+    }
+
+    .home-search-panel {
+      width: 100%;
+      max-width: 620px;
+      padding: 0 20px;
+    }
+
+    .home-search-combo {
+      width: 100%;
+    }
+
+    .home-search-input-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .home-search-input-wrap svg {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-secondary);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    #searchOverlay.collection-search .search-input {
+      width: 100% !important;
+      max-width: none !important;
+      padding: 16px 16px 16px 36px !important;
+      font-size: 1.05rem !important;
+      font-family: 'Playfair Display', serif !important;
+      letter-spacing: 0.4px;
+      background: transparent !important;
+      color: var(--text-main) !important;
+      border: none !important;
+      border-bottom: 1px solid #e5e5e5 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+      transition: border-color 0.3s ease, color 0.3s ease;
+    }
+
+    #searchOverlay.collection-search .search-input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.65;
+      font-style: italic;
+    }
+
+    #searchOverlay.collection-search .search-input:focus {
+      border-bottom-color: var(--rolex-green) !important;
+      outline: none;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results {
+      list-style: none;
+      margin: 0 !important;
+      padding: 4px 0 8px;
+      width: 100%;
+      max-width: none !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      display: none;
+      position: static !important;
+      max-height: min(320px, 45vh);
+      overflow-y: auto;
+      z-index: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 96, 57, 0.25) transparent;
+      padding-right: 4px;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results::-webkit-scrollbar-track {
+      background: transparent;
+      margin: 4px 0;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results::-webkit-scrollbar-thumb {
+      background: rgba(0, 96, 57, 0.2);
+      border-radius: 999px;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 96, 57, 0.4);
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results li {
+      display: block !important;
+      padding: 14px 0 0 36px !important;
+      cursor: pointer;
+      border: none !important;
+      opacity: 1;
+      transform: none;
+      animation: none;
+      transition: color 0.2s ease;
+      background: transparent !important;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results li:hover {
+      background: transparent !important;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results li img {
+      display: none !important;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results .result-line {
+      border: none;
+      border-top: 1px solid #eeeeee;
+      margin: 14px 0 0;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results .result-name {
+      color: var(--spb-text-main) !important;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.92rem;
+      font-weight: 500;
+      letter-spacing: 0.35px;
+      line-height: 1.3;
+      transition: color 0.2s ease;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results li:hover .result-name {
+      color: var(--rolex-green) !important;
+    }
+
+    #searchOverlay.collection-search #searchResults.home-search-results .search-empty {
+      padding: 16px 0 0 36px;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      letter-spacing: 0.5px;
+      font-style: italic;
+      cursor: default;
+    }
+
+    @media (max-width: 768px) {
+      body.search-active {
+        overflow: hidden;
+      }
+
+      #searchOverlay.collection-search {
+        padding-top: 96px !important;
+        align-items: stretch;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      .home-search-panel {
+        padding: 0 16px 32px;
+      }
+
+      #searchOverlay.collection-search .search-input {
+        font-size: 16px !important;
+      }
+
+      #searchOverlay.collection-search #searchResults.home-search-results {
+        max-height: none;
+        overflow-y: visible;
+      }
+    }
+
+    .menu-left-panel { flex: 0 0 45%; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-left: 8%; box-sizing: border-box; background-color: #fff; }
+    .menu-nav-list { list-style: none; padding: 0; margin: 0; }
+    .menu-nav-list li { margin-bottom: 25px; }
+    .menu-nav-list a { text-decoration: none; color: #1a1a1a; font-size: clamp(24px, 4vw, 36px); font-weight: 500; transition: all 0.3s ease; display: inline-block; }
+    .menu-nav-list a:hover { color: var(--spb-rolex-green); transform: translateX(10px); }
+    .menu-nav-list .sub-link { font-size: 14px; color: #888; margin-top: 8px; display: block; text-transform: uppercase; }
+
+    .menu-right-panel { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #ffffff; position: relative; }
+    .menu-carousel-wrapper { width: 80%; max-width: 450px; text-align: center; }
+    .carousel-track-container { overflow: hidden; position: relative; }
+    .carousel-track { display: flex; transition: transform 0.6s cubic-bezier(0.45, 0, 0.55, 1); }
+    .menu-slide { min-width: 100%; padding: 20px; box-sizing: border-box; }
+    .menu-slide img { width: 100%; max-height: 350px; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1)); margin-bottom: 20px; }
+    .menu-slide h3 { font-size: 20px; margin: 10px 0 5px 0; color: #000; }
+    .menu-slide p { font-size: 14px; color: #666; }
+    .menu-carousel-dots { display: flex; justify-content: center; gap: 10px; margin-top: 30px; }
+    .m-dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; cursor: pointer; }
+    .m-dot.active { background: var(--spb-rolex-green); width: 20px; border-radius: 4px; }
+
+    @media (max-width: 900px) {
+      .menu-overlay { flex-direction: column; }
+      .menu-left-panel { flex: 1; padding-top: 100px; padding-left: 10%; }
+      .menu-right-panel { display: none; }
+    }
+
+    /* --- COLLECTION FOOTER — full-width desktop --- */
+    @media (min-width: 901px) {
+      body.collection-page .alfa-site-footer {
+        width: 100%;
+      }
+
+      body.collection-page .alfa-site-footer .alfa-footer-inner {
+        max-width: none;
+        width: 100%;
+        padding: 84px 5vw 56px;
+        grid-template-columns: minmax(240px, 22vw) 1fr;
+        gap: clamp(48px, 6vw, 100px);
+        align-items: start;
+        box-sizing: border-box;
+      }
+
+      body.collection-page .alfa-site-footer .alfa-footer-brand {
+        max-width: 320px;
+      }
+
+      body.collection-page .alfa-site-footer .alfa-footer-columns {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(40px, 5vw, 88px);
+        justify-content: space-between;
+      }
+
+      body.collection-page .alfa-site-footer .alfa-footer-bottom {
+        max-width: none;
+        width: 100%;
+        padding: 26px 5vw 34px;
+        box-sizing: border-box;
+      }
+    }
+
+    /* --- COLLECTION CONTENT STYLING (Mbajtur origjinal) --- */
+    .collection-wrapper { padding: 120px 60px 40px 60px; } /* Shtuar per te mos u mbuluar nga navbar */
+    header { margin-bottom: 20px; }
+    h1 { font-size: 42px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.5px; }
+    .subtitle { font-size: 16px; color: var(--text-secondary); font-weight: 400; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+    .search-container input { border: none; outline: none; font-size: 14px; font-weight: 500; color: var(--text-main); padding: 5px 0; border-bottom: 1px solid transparent; transition: border-color 0.3s; }
+    .search-container input:focus { border-color: var(--rolex-green); }
+    .sort-container { display: flex; align-items: center; gap: 5px; }
+    .sort-label { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 600; }
+    .sort-select { border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; padding: 0 5px; outline: none; text-transform: uppercase; letter-spacing: 1px; appearance: none; }
+    .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; contain: layout style; }
+    .card { background-color: var(--card-bg); padding: 20px 30px; display: flex; flex-direction: column; position: relative; height: 210px; text-decoration: none; color: inherit; transition: background-color 0.2s ease; overflow: visible; }
+    .card:hover { background-color: #eeeeee; }
+    .favorite-icon { position: absolute; top: 20px; left: 20px; z-index: 10; }
+    .favorite-icon svg { fill: none; stroke: var(--rolex-green); stroke-width: 1.5; opacity: 0.8; }
+    .card-content { display: grid; grid-template-columns: 1fr 1.2fr; align-items: center; height: 100%; gap: 5px; }
+    .card-info { display: flex; flex-direction: column; justify-content: center; z-index: 2; }
+    .watch-name { font-size: 19px; font-weight: 700; margin-bottom: 4px; display: block; line-height: 1.2; }
+    .watch-details { font-size: 13px; color: var(--text-secondary); line-height: 1.4; max-width: 130px; }
+    .watch-image-container { display: flex; justify-content: center; align-items: center; position: relative; height: 100%; }
+    .watch-image-container::after { content: ''; position: absolute; bottom: 5%; width: 80px; height: 10px; background: rgba(0,0,0,0.06); filter: blur(8px); border-radius: 50%; z-index: 0; }
+    .watch-image { width: 100%; height: 160px; max-width: 190px; object-fit: contain; z-index: 1; mix-blend-mode: normal; will-change: transform; transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .card:hover .watch-image { transform: translateY(-8px) scale(1.05); }
+
+    @media (max-width: 1100px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) {
+      .collection-wrapper { padding: 100px 20px 20px 20px; }
+      .grid-container { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .card { height: auto; min-height: 300px; padding: 12px 10px 14px; overflow: hidden; }
+      .favorite-icon { top: 10px; left: 10px; }
+      .card-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        height: 100%;
+        gap: 12px;
+      }
+      .watch-image-container {
+        order: -1;
+        width: 100%;
+        height: 132px;
+        margin-bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .watch-image-container::after {
+        bottom: 8%;
+        width: 64px;
+        height: 8px;
+      }
+      .watch-image {
+        width: 112px;
+        height: 112px;
+        max-width: 112px;
+        min-width: 112px;
+        min-height: 112px;
+        object-fit: contain;
+        object-position: center;
+      }
+      .card:hover .watch-image {
+        transform: none;
+      }
+      .card-info {
+        order: 1;
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: center;
+        min-height: 0;
+        padding-top: 2px;
+        gap: 4px;
+      }
+      .watch-name {
+        font-size: 13px;
+        line-height: 1.3;
+        word-break: break-word;
+        width: 100%;
+      }
+      .watch-details {
+        font-size: 11px;
+        max-width: 100%;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="search-init collection-page">
+
+<div class="navbar" id="navbar">
+  <div class="More">
+    <input type="checkbox" id="menuToggle" style="display:none;">
+    <label class="hamburger" id="hamburgerIcon" for="menuToggle">
+      <div class="hamburger-content">
+        <svg viewBox="0 0 32 32">
+          <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"/>
+          <path class="line" d="M7 16 27 16"/>
+        </svg>
+        <span class="Menu-Text">Menu</span>
+      </div>
+    </label>
+
+    <div class="menu-overlay" id="menuOverlay">
+      <div class="menu-left-panel">
+        <ul class="menu-nav-list">
+          <li><a th:href="@{/}">Home</a><span class="sub-link">Deluxe</span></li>
+          <li><a th:href="@{/dashboard}">Dashboard</a><span class="sub-link">Browse all watches</span></li>
+          <li><a th:href="@{/collection}">Collection</a><span class="sub-link">Official Collection</span></li>
+          <li><a href="#">New watches 2026</a></li>
+          <li>
+            <a href="#">Men's Watches</a>
+            <div style="margin-left: 20px; margin-top: 10px;">
+              <a th:href="@{/luxury-watches}" class="sub-link">Luxury Watches</a>
+              <a th:href="@{/classic-watches}" class="sub-link">Classic Watches</a>
+              <a th:href="@{/sportive-watches}" class="sub-link">Sportive Watches</a>
+            </div>
+          </li>
+          <li><a href="#">Women's Watches</a></li>
+          <li><a href="#">Watchmaking</a></li>
+        </ul>
+      </div>
+
+      <div class="menu-right-panel">
+        <div class="menu-carousel-wrapper">
+          <div class="carousel-track-container">
+            <div class="carousel-track" id="mTrack">
+              <div class="menu-slide" th:each="watch : ${relatedProducts}">
+                <a th:href="@{'/product-details/' + ${watch.id}}" style="text-decoration: none;">
+                  <img th:src="${watch.imageUrl}" th:alt="${watch.name}">
+                  <h3 th:text="${watch.name}">Datejust</h3>
+                  <p th:text="${watch.description}">Oystersteel</p>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="menu-carousel-dots" id="mDots"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-brand">
+    <a th:href="@{/}" class="nav-brand-link">DELUXE</a>
+  </div>
+
+  <div class="nav-right">
+    <div class="Cart">
+      <button id="cartBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor">
+          <path d="M7 18q-.825 0-1.412-.587Q5 16.825 5 16t.588-1.413Q6.175 14 7 14q.825 0 1.413.587Q9 15.175 9 16t-.587 1.413Q7.825 18 7 18Zm10 0q-.825 0-1.412-.587Q15 16.825 15 16t.588-1.413Q16.175 14 17 14q.825 0 1.413.587Q19 15.175 19 16t-.587 1.413Q17.825 18 17 18Zm-9.9-4-.925-2H17.3l2.25-6H6.15l-.9-2H2v2h2.05L7.8 14Zm-.65-4L6.6 8h11.05l-1.2 2Z"/>
+        </svg>
+        <span class="sss">Cart</span>
+        <span id="cart-count">0</span>
+      </button>
+    </div>
+    <div class="Search">
+      <button id="searchBtn">
+        <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1em" width="1em">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <span class="sss">Search</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="search-overlay collection-search" id="searchOverlay">
+  <div class="home-search-panel">
+    <div class="home-search-combo" id="homeSearchCombo">
+      <div class="home-search-input-wrap">
+        <svg stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" placeholder="Kërko orën tuaj..." class="search-input" id="searchInput" autocomplete="off" />
+      </div>
+      <div id="recentSearches" class="recent-searches" hidden></div>
+      <ul id="searchResults" class="home-search-results"></ul>
+    </div>
+  </div>
+</div>
+<div class="collection-wrapper">
+  <header>
+    <h1 th:text="${pageTitle}">Collection</h1>
+    <p class="subtitle">Browse Deluxe watches and accessories based on your search</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-container">
+      <form action="/collection" method="get" autocomplete="off">
+        <input type="text" name="query" placeholder="KËRKO..." th:value="${searchQuery}" aria-label="Search">
+      </form>
+    </div>
+
+    <div class="sort-container">
+      <span class="sort-label">SORTO SIPAS:</span>
+      <select class="sort-select" id="sortSelect" onchange="applySort()" aria-label="Sort options">
+        <option value="newest" th:selected="${currentSort == 'newest'}">MË TË REJAT</option>
+        <option value="priceLow" th:selected="${currentSort == 'priceLow'}">ÇMIMI: ULËT</option>
+        <option value="priceHigh" th:selected="${currentSort == 'priceHigh'}">ÇMIMI: LART</option>
+        <option value="name" th:selected="${currentSort == 'name'}">EMRI (A-Z)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    <a th:each="product : ${products}" th:href="@{'/product-details/' + ${product.id}}" class="card">
+      <div class="favorite-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+      <div class="card-content">
+        <div class="card-info">
+          <span class="watch-name" th:text="${product.name}">Day-Date 36</span>
+          <span class="watch-details" th:text="${product.description}">Oyster, 36 mm, yellow gold</span>
+        </div>
+        <div class="watch-image-container">
+          <img th:src="${product.imageUrl}"
+               th:alt="${product.name}"
+               class="watch-image"
+               loading="lazy"
+               decoding="async">
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div th:replace="~{fragments/footer :: site-footer}"></div>
+
+<div class="custom-cart-overlay collection-cart" id="customCartOverlay">
+  <button class="custom-cart-close" id="closeCustomCart" type="button" aria-label="Mbyll shportën">&times;</button>
+  <div class="custom-cart-content">
+    <h2 class="custom-cart-title">Shporta</h2>
+    <div id="customCartItems" class="cart-items-container"></div>
+    <div class="custom-cart-summary">
+      <p>Nëntotali <span id="customSubtotal">0.00 €</span></p>
+      <p>Transporti <span id="customShipping">Falas</span></p>
+      <hr class="collection-cart-divider">
+      <h3>Totali <span id="customTotal">0.00 €</span></h3>
+      <button id="buyNowBtn" type="button">Vazhdo te pagesa</button>
+    </div>
+  </div>
+</div>
+
+<script th:src="@{/js/cart-badge.js}"></script>
+
+<script th:inline="javascript">
+  "use strict";
+
+  /* --- LOGJIKA E NAVBARIT DHE SEARCH (Kopjuar fiks) --- */
+  function applySort() {
+    const sortValue = document.getElementById('sortSelect').value;
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('sort', sortValue);
+    window.location.href = window.location.pathname + '?' + urlParams.toString();
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const track = document.getElementById('mTrack');
+    const slides = track ? Array.from(track.children) : [];
+    const dotsNav = document.getElementById('mDots');
+
+    if (track && slides.length > 0) {
+      slides.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.classList.add('m-dot');
+        if (i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => moveToSlide(i));
+        dotsNav.appendChild(dot);
+      });
+      const dots = Array.from(dotsNav.children);
+      let currentIdx = 0;
+      function moveToSlide(index) {
+        track.style.transform = `translateX(-${index * 100}%)`;
+        dots.forEach(d => d.classList.remove('active'));
+        dots[index].classList.add('active');
+        currentIdx = index;
+      }
+      setInterval(() => {
+        currentIdx = (currentIdx + 1) % slides.length;
+        moveToSlide(currentIdx);
+      }, 4000);
+    }
+  });
+
+  function loadCartContent() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const container = document.getElementById('customCartItems');
+    const buyNowBtn = document.getElementById('buyNowBtn');
+    if (!container) return;
+
+    let subtotal = 0;
+    container.innerHTML = '';
+
+    if (cart.length === 0) {
+      container.innerHTML = '<p class="cart-empty-msg">Shporta juaj është bosh.</p>';
+    } else {
+      cart.forEach((item, i) => {
+        const price = parseFloat(item.price) || 0;
+        subtotal += price;
+        const imgSource = item.imageUrl || item.image || '';
+        const row = document.createElement('div');
+        row.className = 'cart-item-row';
+        row.innerHTML = `
+          <img src="${imgSource}" alt="${item.name || item.title || ''}">
+          <div class="cart-item-info">
+            <h4>${item.name || item.title || 'Produkt'}</h4>
+            <p>${price.toFixed(2)} €</p>
+          </div>
+          <button type="button" class="remove-item-btn" data-index="${i}" aria-label="Hiq produktin">&times;</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    const subtotalEl = document.getElementById('customSubtotal');
+    const totalEl = document.getElementById('customTotal');
+    if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' €';
+    if (totalEl) totalEl.textContent = subtotal.toFixed(2) + ' €';
+
+    if (buyNowBtn) {
+      buyNowBtn.onclick = (e) => {
+        e.preventDefault();
+        const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+        if (currentCart.length === 0) {
+          const original = buyNowBtn.textContent;
+          buyNowBtn.textContent = 'Shporta është bosh';
+          setTimeout(() => { buyNowBtn.textContent = original; }, 2000);
+        } else {
+          localStorage.removeItem('selectedWatch');
+          window.location.href = '/buy';
+        }
+      };
+    }
+
+    if (typeof window.refreshCartCount === 'function') window.refreshCartCount();
+  }
+
+  function openCart() {
+    loadCartContent();
+    const overlay = document.getElementById('customCartOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      overlay.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeCart() {
+    const overlay = document.getElementById('customCartOverlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+  }
+
+  const cartBtn = document.getElementById('cartBtn');
+  const cartOverlay = document.getElementById('customCartOverlay');
+  const closeCartBtn = document.getElementById('closeCustomCart');
+
+  if (cartBtn && cartOverlay) {
+    cartBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openCart();
+    };
+  }
+
+  if (closeCartBtn) {
+    closeCartBtn.onclick = (e) => {
+      e.preventDefault();
+      closeCart();
+    };
+  }
+
+  if (cartOverlay) {
+    cartOverlay.addEventListener('click', (e) => {
+      if (e.target === cartOverlay) closeCart();
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const removeBtn = e.target.closest('.remove-item-btn');
+    if (!removeBtn || cartOverlay?.style.display !== 'flex') return;
+    const index = parseInt(removeBtn.dataset.index, 10);
+    if (Number.isNaN(index)) return;
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCartContent();
+  });
+
+</script>
+<script th:src="@{/js/search-ui.js}"></script>
+<script th:src="@{/js/index.js}"></script>
+
+</body>
+</html>

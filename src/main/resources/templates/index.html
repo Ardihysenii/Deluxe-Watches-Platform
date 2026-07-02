@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Deluxe | Home</title>
+    <link rel="icon" type="img/Logo.png" th:href="@{/img/Logo.png}">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap">
+    <style>
+        /* Efekti per Shfaqje ne Scroll */
+        .hidden-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .show-scroll {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* Menu overlay (homepage black theme) */
+        body.menu-open { overflow: hidden !important; }
+
+        .menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000; z-index: 1000; display: flex; flex-direction: row;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transform: none !important;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #menuToggle:checked ~ .menu-overlay {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: none !important;
+            top: 0 !important;
+        }
+        body.search-active .menu-overlay,
+        body.search-active #menuToggle:checked ~ .menu-overlay {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .menu-left-panel { flex: 0 0 45%; height: 100%; display: flex; flex-direction: column; justify-content: center; padding-left: 8%; box-sizing: border-box; background-color: #000000; }
+        .menu-nav-list { list-style: none; padding: 0; margin: 0; }
+        .menu-nav-list li { margin-bottom: 25px; }
+        .menu-nav-list a { text-decoration: none; color: #ffffff; font-size: clamp(24px, 4vw, 36px); font-weight: 500; transition: all 0.3s ease; display: inline-block; }
+        .menu-nav-list a:hover { color: #C0C0C0; transform: translateX(10px); }
+        .menu-nav-list .sub-link { font-size: 14px; color: #888888; margin-top: 8px; display: block; text-transform: uppercase; }
+
+        .menu-right-panel { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #000000; position: relative; }
+        .menu-carousel-wrapper { width: 80%; max-width: 450px; text-align: center; }
+        .carousel-track-container { overflow: hidden; position: relative; }
+        .carousel-track { display: flex; transition: transform 0.6s cubic-bezier(0.45, 0, 0.55, 1); }
+        .menu-slide { min-width: 100%; padding: 20px; box-sizing: border-box; }
+        .menu-slide img { width: 100%; max-height: 350px; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(255,255,255,0.08)); margin-bottom: 20px; }
+        .menu-slide h3 { font-size: 20px; margin: 10px 0 5px 0; color: #ffffff; }
+        .menu-slide p { font-size: 14px; color: #aaaaaa; }
+        .menu-carousel-dots { display: flex; justify-content: center; gap: 10px; margin-top: 30px; }
+        .m-dot { width: 8px; height: 8px; border-radius: 50%; background: #444444; cursor: pointer; }
+        .m-dot.active { background: #C0C0C0; width: 20px; border-radius: 4px; }
+
+        @media (max-width: 900px) {
+            .menu-overlay { flex-direction: column; }
+            .menu-left-panel { flex: 1; padding-top: 100px; padding-left: 10%; }
+            .menu-right-panel { display: none; }
+        }
+
+        /* Hero fills the first screen; video keeps original dimensions */
+        .rolex {
+            width: 100%;
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rolex .video-container {
+            position: relative;
+            width: 50%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .rolex .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (min-width: 769px) {
+            .rolex {
+                width: 50%;
+                margin: 0 auto;
+                padding-top: 0;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+            }
+
+            .rolex .video-container {
+                width: 100%;
+                padding-bottom: 56.25%;
+            }
+        }
+
+        /* Homepage search overlay */
+        #searchOverlay {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            background: rgba(0, 0, 0, 0.72);
+            padding-top: 16vh;
+        }
+
+        .home-search-panel {
+            width: 100%;
+            max-width: 620px;
+            padding: 0 20px;
+        }
+
+        .home-search-combo {
+            width: 100%;
+        }
+
+        .home-search-input-wrap {
+            position: relative;
+            width: 100%;
+        }
+
+        .home-search-input-wrap svg {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            stroke: rgba(192, 192, 192, 0.45);
+            pointer-events: none;
+        }
+
+        #searchOverlay .search-input {
+            width: 100%;
+            max-width: none;
+            padding: 16px 16px 16px 36px;
+            font-size: 1.05rem;
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 0.4px;
+            background: transparent;
+            color: #f2f2f2;
+            border: none;
+            border-bottom: 1px solid rgba(192, 192, 192, 0.25);
+            border-radius: 0;
+            box-shadow: none;
+            opacity: 1;
+            transform: none;
+            animation: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #searchOverlay .search-input::placeholder {
+            color: rgba(192, 192, 192, 0.4);
+            font-style: italic;
+        }
+
+        #searchOverlay .search-input:focus {
+            border-bottom-color: #C0C0C0;
+            outline: none;
+        }
+
+        #searchOverlay #searchResults.home-search-results {
+            list-style: none;
+            margin: 0 !important;
+            padding: 4px 0 8px;
+            width: 100%;
+            max-width: none !important;
+            background: transparent !important;
+            border: none;
+            box-shadow: none;
+            display: none;
+            position: static !important;
+            max-height: min(320px, 45vh);
+            overflow-y: auto;
+            z-index: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(192, 192, 192, 0.35) transparent;
+            padding-right: 4px;
+        }
+
+        #searchOverlay #searchResults.home-search-results::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        #searchOverlay #searchResults.home-search-results::-webkit-scrollbar-track {
+            background: transparent;
+            margin: 4px 0;
+        }
+
+        #searchOverlay #searchResults.home-search-results::-webkit-scrollbar-thumb {
+            background: rgba(192, 192, 192, 0.28);
+            border-radius: 999px;
+        }
+
+        #searchOverlay #searchResults.home-search-results::-webkit-scrollbar-thumb:hover {
+            background: rgba(192, 192, 192, 0.5);
+        }
+
+        #searchOverlay #searchResults.home-search-results li {
+            display: block !important;
+            padding: 14px 0 0 36px;
+            cursor: pointer;
+            border: none;
+            opacity: 1;
+            transform: none;
+            animation: none;
+            transition: opacity 0.2s ease;
+        }
+
+        #searchOverlay #searchResults.home-search-results li:hover {
+            opacity: 0.85;
+        }
+
+        #searchOverlay #searchResults.home-search-results .result-line {
+            border: none;
+            border-top: 1px solid rgba(192, 192, 192, 0.2);
+            margin: 14px 0 0;
+        }
+
+        #searchOverlay #searchResults.home-search-results .result-name {
+            color: #ececec;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.92rem;
+            font-weight: 500;
+            letter-spacing: 0.35px;
+            line-height: 1.3;
+        }
+
+        #searchOverlay #searchResults.home-search-results li:hover .result-name {
+            color: #C0C0C0;
+        }
+
+        #searchOverlay #searchResults.home-search-results .search-empty {
+            padding: 16px 0 0 36px;
+            color: rgba(192, 192, 192, 0.45);
+            font-size: 0.88rem;
+            letter-spacing: 0.5px;
+            font-style: italic;
+            cursor: default;
+        }
+
+        #searchOverlay #searchResults.home-search-results .search-empty:hover {
+            opacity: 1;
+        }
+
+        /* Homepage cart overlay — collection layout, dark home theme */
+        .custom-cart-overlay.home-cart {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            padding: 88px 32px 48px;
+            background: rgba(0, 0, 0, 0.94) !important;
+            backdrop-filter: blur(24px) saturate(1.05);
+            -webkit-backdrop-filter: blur(24px) saturate(1.05);
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            color: #f2f2f2;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .custom-cart-overlay.home-cart.is-open,
+        .custom-cart-overlay.home-cart[style*="flex"] {
+            display: flex !important;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .home-cart .custom-cart-close {
+            position: fixed;
+            top: 22px;
+            right: 28px;
+            width: 40px;
+            height: 40px;
+            font-size: 28px;
+            line-height: 1;
+            color: #f2f2f2;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .home-cart .custom-cart-close:hover {
+            opacity: 1;
+            border-color: #C0C0C0;
+            color: #C0C0C0;
+        }
+
+        .home-cart .custom-cart-content {
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr minmax(280px, 320px);
+            gap: 40px 56px;
+            align-items: start;
+            margin: 0;
+            animation: homeCartIn 0.4s ease;
+        }
+
+        @keyframes homeCartIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .home-cart .custom-cart-title {
+            grid-column: 1 / -1;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 3vw, 1.85rem);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            color: #f2f2f2;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 18px;
+            margin: 0;
+        }
+
+        .home-cart .cart-items-container {
+            max-height: min(52vh, 480px);
+            overflow-y: auto;
+            padding-right: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(192, 192, 192, 0.25) transparent;
+        }
+
+        .home-cart .cart-items-container::-webkit-scrollbar { width: 3px; }
+        .home-cart .cart-items-container::-webkit-scrollbar-thumb {
+            background: rgba(192, 192, 192, 0.25);
+            border-radius: 999px;
+        }
+
+        .home-cart .cart-empty-msg {
+            text-align: center;
+            padding: 48px 20px;
+            color: rgba(192, 192, 192, 0.55);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            font-style: italic;
+        }
+
+        .home-cart .cart-item-row {
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 20px;
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .home-cart .cart-item-row img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            background: #111;
+            border-radius: 2px;
+            padding: 6px;
+            margin: 0;
+        }
+
+        .home-cart .cart-item-info {
+            margin: 0;
+        }
+
+        .home-cart .cart-item-info h4 {
+            margin: 0 0 6px;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f2f2f2;
+            line-height: 1.3;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .home-cart .cart-item-info p {
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #C0C0C0;
+        }
+
+        .home-cart .remove-item-btn {
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: rgba(192, 192, 192, 0.7);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .home-cart .remove-item-btn:hover {
+            border-color: #C0C0C0;
+            color: #C0C0C0;
+            background: none;
+        }
+
+        .home-cart .custom-cart-summary {
+            background: #111;
+            padding: 28px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            height: fit-content;
+            position: sticky;
+            top: 88px;
+        }
+
+        .home-cart .custom-cart-summary p,
+        .home-cart .custom-cart-summary h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #aaaaaa;
+        }
+
+        .home-cart .custom-cart-summary h3 {
+            font-size: 1rem;
+            color: #f2f2f2;
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: none;
+            letter-spacing: 0.3px;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        .home-cart .custom-cart-summary h3 span {
+            color: #C0C0C0;
+        }
+
+        .home-cart .home-cart-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 16px 0;
+        }
+
+        .home-cart #buyNowBtn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 16px 20px;
+            background: #fff;
+            color: #000;
+            border: none;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.25s ease, letter-spacing 0.25s ease;
+        }
+
+        .home-cart #buyNowBtn:hover {
+            background: #C0C0C0;
+            letter-spacing: 2px;
+        }
+
+        /* Titulli me ngjyre Silver dhe distance me te madhe */
+        .section-title {
+            text-align: center;
+            margin: 80px 0 40px 0;
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            color: #C0C0C0;
+            letter-spacing: 2px;
+        }
+
+        /* Homepage — Koleksionet më të shitura (cinematic panels) */
+        .home-collections {
+            position: relative;
+            background: #000;
+            padding: 88px 4% 104px;
+        }
+
+        .home-collections::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 5%;
+            right: 5%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(192, 192, 192, 0.22), transparent);
+        }
+
+        .home-collections-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+
+        .home-collections-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 44px;
+            padding: 0 4px;
+        }
+
+        .home-collections-header-text {
+            max-width: 520px;
+        }
+
+        .home-collections-eyebrow {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: rgba(192, 192, 192, 0.5);
+            margin: 0 0 12px;
+        }
+
+        .home-collections-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.85rem, 3.8vw, 2.6rem);
+            font-weight: 600;
+            color: #f5f5f5;
+            letter-spacing: 0.2px;
+            line-height: 1.15;
+            margin: 0;
+        }
+
+        .home-collections-note {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.78rem;
+            color: rgba(170, 170, 170, 0.75);
+            letter-spacing: 0.04em;
+            max-width: 200px;
+            text-align: right;
+            line-height: 1.5;
+        }
+
+        .home-collections-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .home-collection-card {
+            position: relative;
+            min-height: 460px;
+            overflow: hidden;
+            border-radius: 1px;
+        }
+
+        .home-collection-card:nth-child(2) {
+            min-height: 500px;
+            margin-top: -20px;
+        }
+
+        .home-collection-link {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: inherit;
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .home-collection-photo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease;
+            filter: brightness(0.88) saturate(0.92);
+        }
+
+        .home-collection-card:hover .home-collection-photo {
+            transform: scale(1.07);
+            filter: brightness(0.95) saturate(1);
+        }
+
+        .home-collection-shade {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(0, 0, 0, 0.05) 0%,
+                rgba(0, 0, 0, 0.15) 40%,
+                rgba(0, 0, 0, 0.88) 100%
+            );
+            transition: background 0.4s ease;
+        }
+
+        .home-collection-card:hover .home-collection-shade {
+            background: linear-gradient(
+                180deg,
+                rgba(0, 0, 0, 0.1) 0%,
+                rgba(0, 0, 0, 0.25) 35%,
+                rgba(0, 0, 0, 0.94) 100%
+            );
+        }
+
+        .home-collection-copy {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            padding: 28px 26px 30px;
+        }
+
+        .home-collection-index {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 400;
+            line-height: 1;
+            color: rgba(192, 192, 192, 0.18);
+            margin-bottom: 10px;
+        }
+
+        .home-collection-copy h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 6px;
+            line-height: 1.25;
+        }
+
+        .home-collection-desc {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.55);
+            margin: 0 0 18px;
+            letter-spacing: 0.02em;
+        }
+
+        .home-collection-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .home-collection-price {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #C0C0C0;
+            letter-spacing: 0.04em;
+        }
+
+        .home-collection-arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.25s ease, gap 0.25s ease;
+        }
+
+        .home-collection-arrow svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.5;
+            transition: transform 0.25s ease;
+        }
+
+        .home-collection-card:hover .home-collection-arrow {
+            color: #fff;
+            gap: 12px;
+        }
+
+        .home-collection-card:hover .home-collection-arrow svg {
+            transform: translateX(3px);
+        }
+
+        /* Homepage — Vision section (GIF) */
+        .home-vision {
+            position: relative;
+            background: #000;
+            padding: 96px 4% 104px;
+        }
+
+        .home-vision::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 5%;
+            right: 5%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(192, 192, 192, 0.18), transparent);
+        }
+
+        .home-vision-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+        }
+
+        .home-vision-content {
+            padding-right: 12px;
+        }
+
+        .home-vision-eyebrow {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: rgba(192, 192, 192, 0.5);
+            margin: 0 0 20px;
+        }
+
+        .home-vision-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.65rem, 3.2vw, 2.35rem);
+            font-weight: 600;
+            color: #f5f5f5;
+            line-height: 1.25;
+            letter-spacing: 0.2px;
+            margin: 0 0 24px;
+            padding-left: 24px;
+            border-left: 2px solid rgba(192, 192, 192, 0.35);
+        }
+
+        .home-vision-text {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: rgba(170, 170, 170, 0.9);
+            margin: 0;
+            max-width: 440px;
+            padding-left: 24px;
+        }
+
+        .home-vision-media {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .home-vision-frame {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            padding: 14px;
+            background: linear-gradient(165deg, #111 0%, #080808 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.45);
+        }
+
+        .home-vision-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(192, 192, 192, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .home-vision-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 1px;
+            filter: contrast(1.02) brightness(0.96);
+        }
+
+        /* Footer Stili Horizontal */
+        .footer {
+            background-color: #000;
+            color: #fff;
+            padding: 80px 10%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            border-top: 1px solid #222;
+        }
+        .footer-logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+        .footer-section {
+            margin-bottom: 30px;
+            min-width: 200px;
+            text-align: left;
+        }
+        .footer-section h4 {
+            font-family: 'Playfair Display', serif;
+            color: #C0C0C0;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .footer-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .footer-section ul li {
+            margin-bottom: 12px;
+        }
+        .footer-section ul li a {
+            color: #888;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .footer-section ul li a:hover {
+            color: #fff;
+        }
+        .footer-bottom {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #444;
+            border-top: 1px solid #111;
+            padding-top: 25px;
+            width: 100%;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .footer-section {
+                text-align: center;
+            }
+            .rolex {
+                min-height: 100svh;
+            }
+            .rolex .video-container {
+                width: 90%;
+                padding-bottom: 60%;
+            }
+
+            body.search-active {
+                overflow: hidden;
+            }
+
+            #searchOverlay {
+                padding-top: 96px;
+                align-items: stretch;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+            }
+
+            .home-search-panel {
+                padding: 0 16px 32px;
+            }
+
+            #searchOverlay .search-input {
+                font-size: 16px;
+            }
+
+            #searchOverlay #searchResults.home-search-results {
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .custom-cart-overlay.home-cart {
+                padding: 72px 16px 32px;
+            }
+
+            .home-cart .custom-cart-close {
+                top: 16px;
+                right: 16px;
+            }
+
+            .home-cart .custom-cart-content {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+
+            .home-cart .custom-cart-summary {
+                position: static;
+            }
+
+            .home-cart .cart-items-container {
+                max-height: none;
+            }
+
+            .home-cart .cart-item-row {
+                grid-template-columns: 64px 1fr auto;
+                gap: 14px;
+            }
+
+            .home-cart .cart-item-row img {
+                width: 64px;
+                height: 64px;
+            }
+
+            .home-collections {
+                padding: 64px 16px 80px;
+            }
+
+            .home-collections-header {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 32px;
+            }
+
+            .home-collections-note {
+                text-align: left;
+                max-width: none;
+            }
+
+            .home-collections-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .home-collection-card,
+            .home-collection-card:nth-child(2) {
+                min-height: 380px;
+                margin-top: 0;
+            }
+
+            .home-vision {
+                padding: 64px 16px 80px;
+            }
+
+            .home-vision-inner {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .home-vision-content {
+                padding-right: 0;
+                text-align: center;
+            }
+
+            .home-vision-title,
+            .home-vision-text {
+                padding-left: 0;
+                border-left: none;
+                max-width: none;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .home-vision-title {
+                border-top: 2px solid rgba(192, 192, 192, 0.25);
+                padding-top: 24px;
+            }
+
+            .home-vision-frame {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="search-init">
+
+<div class="navbar" id="navbar">
+    <div class="More">
+        <input type="checkbox" id="menuToggle" style="display:none;">
+        <label class="hamburger" id="hamburgerIcon" for="menuToggle">
+            <div class="hamburger-content">
+                <svg viewBox="0 0 32 32">
+                    <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"/>
+                    <path class="line" d="M7 16 27 16"/>
+                </svg>
+                <span class="Menu-Text">Menu</span>
+            </div>
+        </label>
+
+        <div class="menu-overlay" id="menuOverlay">
+            <div class="menu-left-panel">
+                <ul class="menu-nav-list">
+                    <li><a th:href="@{/}">Home</a><span class="sub-link">Deluxe</span></li>
+                    <li><a th:href="@{/dashboard}">Dashboard</a><span class="sub-link">Browse all watches</span></li>
+                    <li><a th:href="@{/collection}">Collection</a><span class="sub-link">Official Collection</span></li>
+                    <li><a href="#">New watches 2026</a></li>
+                    <li>
+                        <a href="#">Men's Watches</a>
+                        <div style="margin-left: 20px; margin-top: 10px;">
+                            <a th:href="@{/luxury-watches}" class="sub-link">Luxury Watches</a>
+                            <a th:href="@{/classic-watches}" class="sub-link">Classic Watches</a>
+                            <a th:href="@{/sportive-watches}" class="sub-link">Sportive Watches</a>
+                        </div>
+                    </li>
+                    <li><a href="#">Women's Watches</a></li>
+                    <li><a href="#">Watchmaking</a></li>
+                </ul>
+            </div>
+
+            <div class="menu-right-panel">
+                <div class="menu-carousel-wrapper">
+                    <div class="carousel-track-container">
+                        <div class="carousel-track" id="mTrack">
+                            <div class="menu-slide" th:each="watch : ${relatedProducts}">
+                                <a th:href="@{'/product-details/' + ${watch.id}}" style="text-decoration: none;">
+                                    <img th:src="${watch.imageUrl}" th:alt="${watch.name}">
+                                    <h3 th:text="${watch.name}">Datejust</h3>
+                                    <p th:text="${watch.description}">Oystersteel</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-carousel-dots" id="mDots"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-brand">
+        <a th:href="@{/}" class="nav-brand-link">DELUXE</a>
+    </div>
+
+    <div class="nav-right">
+        <div class="Cart">
+            <button id="cartBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor">
+                    <path d="M7 18q-.825 0-1.412-.587Q5 16.825 5 16t.588-1.413Q6.175 14 7 14q.825 0 1.413.587Q9 15.175 9 16t-.587 1.413Q7.825 18 7 18Zm10 0q-.825 0-1.412-.587Q15 16.825 15 16t.588-1.413Q16.175 14 17 14q.825 0 1.413.587Q19 15.175 19 16t-.587 1.413Q17.825 18 17 18Zm-9.9-4-.925-2H17.3l2.25-6H6.15l-.9-2H2v2h2.05L7.8 14Zm-.65-4L6.6 8h11.05l-1.2 2Z"/>
+                </svg>
+                <span class="sss">Cart</span>
+                <span id="cart-count">0</span>
+            </button>
+        </div>
+
+        <div class="Search">
+            <button id="searchBtn">
+                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" height="1em" width="1em">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <span class="sss">Search</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="search-overlay" id="searchOverlay">
+    <div class="home-search-panel">
+        <div class="home-search-combo" id="homeSearchCombo">
+            <div class="home-search-input-wrap">
+                <svg stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" placeholder="Kërko orën tuaj..." class="search-input" id="searchInput" autocomplete="off" />
+            </div>
+            <div id="recentSearches" class="recent-searches" hidden></div>
+            <ul id="searchResults" class="home-search-results"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="rolex">
+    <div class="video-container">
+        <video id="intro-video" autoplay muted loop playsinline>
+            <source th:src="@{/videos/hero-video.mp4}" type="video/mp4">
+            Browseri yt nuk e përkrah videon.
+        </video>
+    </div>
+</div>
+
+<section class="home-collections">
+    <div class="home-collections-inner">
+        <header class="home-collections-header hidden-scroll">
+            <div class="home-collections-header-text">
+                <p class="home-collections-eyebrow">Koleksioni 2026</p>
+                <h2 class="home-collections-title">Koleksionet më të shitura</h2>
+            </div>
+            <p class="home-collections-note">Tre universë të orëbërjes — klasike, luksoze dhe sportive.</p>
+        </header>
+
+        <div class="home-collections-grid">
+            <article class="home-collection-card hidden-scroll">
+                <a th:href="@{/classic-watches}" class="home-collection-link">
+                    <img class="home-collection-photo"
+                         src="https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&amp;fit=crop&amp;w=900&amp;q=80"
+                         alt="Koleksioni Klasik"
+                         loading="lazy"
+                         decoding="async">
+                    <div class="home-collection-shade"></div>
+                    <div class="home-collection-copy">
+                        <span class="home-collection-index">01</span>
+                        <h3>Koleksioni Klasik</h3>
+                        <p class="home-collection-desc">Elegancë e përjetshme &amp; finesë tradicionale</p>
+                        <div class="home-collection-footer">
+                            <span class="home-collection-price">Nga 3,500€</span>
+                            <span class="home-collection-arrow">
+                                Shiko
+                                <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </article>
+
+            <article class="home-collection-card hidden-scroll">
+                <a th:href="@{/luxury-watches}" class="home-collection-link">
+                    <img class="home-collection-photo"
+                         src="https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?auto=format&amp;fit=crop&amp;w=900&amp;q=80"
+                         alt="Koleksioni Luksoz"
+                         loading="lazy"
+                         decoding="async">
+                    <div class="home-collection-shade"></div>
+                    <div class="home-collection-copy">
+                        <span class="home-collection-index">02</span>
+                        <h3>Koleksioni Luksoz</h3>
+                        <p class="home-collection-desc">Materiale premium &amp; detaje të jashtëzakonshme</p>
+                        <div class="home-collection-footer">
+                            <span class="home-collection-price">Nga 8,200€</span>
+                            <span class="home-collection-arrow">
+                                Shiko
+                                <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </article>
+
+            <article class="home-collection-card hidden-scroll">
+                <a th:href="@{/sportive-watches}" class="home-collection-link">
+                    <img class="home-collection-photo"
+                         src="https://images.unsplash.com/photo-1547996160-81dfa5453325?auto=format&amp;fit=crop&amp;w=900&amp;q=80"
+                         alt="Koleksioni Sportiv"
+                         loading="lazy"
+                         decoding="async">
+                    <div class="home-collection-shade"></div>
+                    <div class="home-collection-copy">
+                        <span class="home-collection-index">03</span>
+                        <h3>Koleksioni Sportiv</h3>
+                        <p class="home-collection-desc">Performancë &amp; karakter për jetën aktive</p>
+                        <div class="home-collection-footer">
+                            <span class="home-collection-price">Nga 4,800€</span>
+                            <span class="home-collection-arrow">
+                                Shiko
+                                <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="home-vision hidden-scroll">
+    <div class="home-vision-inner">
+        <div class="home-vision-content">
+            <p class="home-vision-eyebrow">Vision</p>
+            <h2 class="home-vision-title">We're Changing the Way the World Thinks About Watches</h2>
+            <p class="home-vision-text">Blending timeless craftsmanship with modern design, Deluxe creates pieces that honor tradition while embracing the future of horology.</p>
+        </div>
+        <div class="home-vision-media">
+            <div class="home-vision-frame">
+                <img th:src="@{/img/GifImage.gif}" alt="Deluxe craftsmanship" loading="lazy" decoding="async">
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-section">
+        <h3 style="font-family: 'Playfair Display', serif; letter-spacing: 0.35em; color: #C0C0C0;">DELUXE</h3>
+    </div>
+
+    <div class="footer-section">
+        <h4>Rreth Nesh</h4>
+        <ul>
+            <li><a href="#">Historia Jonë</a></li>
+            <li><a href="#">Dyqanet tona</a></li>
+            <li><a href="#">Punësimi</a></li>
+        </ul>
+    </div>
+
+    <div class="footer-section">
+        <h4>Ndihma</h4>
+        <ul>
+            <li><a href="#">Kontakt</a></li>
+            <li><a href="#">Transporti</a></li>
+            <li><a href="#">Kthimi i produkteve</a></li>
+        </ul>
+    </div>
+
+    <div class="footer-section">
+        <h4>Rrjetet Sociale</h4>
+        <ul>
+            <li><a href="https://www.instagram.com/deluxewatchess/">Instagram</a></li>
+            <li><a href="#">Facebook</a></li>
+            <li><a href="https://www.tiktok.com/@deluxewatchess">TikTok</a></li>
+        </ul>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2026 Deluxe. Të gjitha të drejtat e rezervuara.</p>
+    </div>
+</footer>
+
+<div class="custom-cart-overlay home-cart" id="customCartOverlay">
+    <button class="custom-cart-close" id="closeCustomCart" type="button" aria-label="Mbyll shportën">&times;</button>
+    <div class="custom-cart-content">
+        <h2 class="custom-cart-title">Shporta</h2>
+        <div id="customCartItems" class="cart-items-container"></div>
+        <div class="custom-cart-summary">
+            <p>Nëntotali <span id="customSubtotal">0.00 €</span></p>
+            <p>Transporti <span id="customShipping">Falas</span></p>
+            <hr class="home-cart-divider">
+            <h3>Totali <span id="customTotal">0.00 €</span></h3>
+            <button id="buyNowBtn" type="button">Vazhdo te pagesa</button>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/cart-badge.js}"></script>
+
+<script th:inline="javascript">
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('show-scroll');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.hidden-scroll').forEach(el => observer.observe(el));
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const track = document.getElementById('mTrack');
+        const slides = track ? Array.from(track.children) : [];
+        const dotsNav = document.getElementById('mDots');
+
+        if (track && slides.length > 0 && dotsNav) {
+            slides.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.classList.add('m-dot');
+                if (i === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => moveToSlide(i));
+                dotsNav.appendChild(dot);
+            });
+            const dots = Array.from(dotsNav.children);
+            let currentIdx = 0;
+            function moveToSlide(index) {
+                track.style.transform = `translateX(-${index * 100}%)`;
+                dots.forEach(d => d.classList.remove('active'));
+                dots[index].classList.add('active');
+                currentIdx = index;
+            }
+            setInterval(() => {
+                currentIdx = (currentIdx + 1) % slides.length;
+                moveToSlide(currentIdx);
+            }, 4000);
+        }
+    });
+
+    function loadCartContent() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const container = document.getElementById('customCartItems');
+        const buyNowBtn = document.getElementById('buyNowBtn');
+        if (!container) return;
+
+        let subtotal = 0;
+        container.innerHTML = '';
+
+        if (cart.length === 0) {
+            container.innerHTML = '<p class="cart-empty-msg">Shporta juaj është bosh.</p>';
+        } else {
+            cart.forEach((item, i) => {
+                const price = parseFloat(item.price) || 0;
+                subtotal += price;
+                const imgSource = item.imageUrl || item.image || '';
+                const row = document.createElement('div');
+                row.className = 'cart-item-row';
+                row.innerHTML = `
+                    <img src="${imgSource}" alt="${item.name || item.title || ''}">
+                    <div class="cart-item-info">
+                        <h4>${item.name || item.title || 'Produkt'}</h4>
+                        <p>${price.toFixed(2)} €</p>
+                    </div>
+                    <button type="button" class="remove-item-btn" data-index="${i}" aria-label="Hiq produktin">&times;</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        const subtotalEl = document.getElementById('customSubtotal');
+        const totalEl = document.getElementById('customTotal');
+        if (subtotalEl) subtotalEl.textContent = subtotal.toFixed(2) + ' €';
+        if (totalEl) totalEl.textContent = subtotal.toFixed(2) + ' €';
+
+        if (buyNowBtn) {
+            buyNowBtn.onclick = (e) => {
+                e.preventDefault();
+                const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+                if (currentCart.length === 0) {
+                    const original = buyNowBtn.textContent;
+                    buyNowBtn.textContent = 'Shporta është bosh';
+                    setTimeout(() => { buyNowBtn.textContent = original; }, 2000);
+                } else {
+                    localStorage.removeItem('selectedWatch');
+                    window.location.href = '/buy';
+                }
+            };
+        }
+
+        if (typeof window.refreshCartCount === 'function') window.refreshCartCount();
+    }
+
+    function openCart() {
+        loadCartContent();
+        const overlay = document.getElementById('customCartOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeCart() {
+        const overlay = document.getElementById('customCartOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+            overlay.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+    }
+
+    const cartBtn = document.getElementById('cartBtn');
+    const cartOverlay = document.getElementById('customCartOverlay');
+    const closeCartBtn = document.getElementById('closeCustomCart');
+
+    if (cartBtn && cartOverlay) {
+        cartBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openCart();
+        };
+    }
+
+    if (closeCartBtn) {
+        closeCartBtn.onclick = (e) => {
+            e.preventDefault();
+            closeCart();
+        };
+    }
+
+    if (cartOverlay) {
+        cartOverlay.addEventListener('click', (e) => {
+            if (e.target === cartOverlay) closeCart();
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-item-btn');
+        if (!removeBtn || cartOverlay?.style.display !== 'flex') return;
+        const index = parseInt(removeBtn.dataset.index, 10);
+        if (Number.isNaN(index)) return;
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        loadCartContent();
+    });
+
+    const nav = document.getElementById('navbar');
+    let lastS = window.scrollY;
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > lastS && window.scrollY > 50) nav.classList.add('hidden');
+        else nav.classList.remove('hidden');
+        lastS = window.scrollY;
+    });
+
+
+</script>
+
+<script th:src="@{/js/search-ui.js}"></script>
+<script th:src="@{/js/index.js}"></script>
+
+</body>
+</html>

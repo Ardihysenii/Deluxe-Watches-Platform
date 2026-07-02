@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="sq" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Deluxe | Pagesa</title>
+    <link rel="icon" type="img/Logo.png" th:href="@{/img/Logo.png}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --hero-tint: #f4f8f6;
+            --hero-accent: #4a6b5d;
+            --hero-accent-dark: #354d43;
+            --hero-glow: rgba(74, 107, 93, 0.34);
+            --text-main: #1a1a1a;
+            --text-muted: #666;
+            --border: rgba(0, 0, 0, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.96);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body.buy-page {
+            margin: 0;
+            padding: 70px 0 0;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-main);
+            background: transparent;
+        }
+
+        body.buy-page.buy-theme-gold {
+            --hero-tint: #faf6ee;
+            --hero-accent: #a8842a;
+            --hero-accent-dark: #7d6218;
+            --hero-glow: rgba(255, 210, 90, 0.45);
+        }
+
+        body.buy-page.buy-theme-silver {
+            --hero-tint: #eef1f5;
+            --hero-accent: #7a8494;
+            --hero-accent-dark: #5c6572;
+            --hero-glow: rgba(160, 170, 185, 0.42);
+        }
+
+        body.buy-page.buy-theme-black {
+            --hero-tint: #f2f2f2;
+            --hero-accent: #2a2a2a;
+            --hero-accent-dark: #111111;
+            --hero-glow: rgba(90, 90, 90, 0.32);
+        }
+
+        body.buy-page.buy-theme-default {
+            --hero-tint: #f4f8f6;
+            --hero-accent: #4a6b5d;
+            --hero-accent-dark: #354d43;
+            --hero-glow: rgba(74, 107, 93, 0.34);
+        }
+
+        .buy-page-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: linear-gradient(155deg, var(--hero-tint) 0%, var(--hero-tint) 28%, #ffffff 100%);
+        }
+
+        .buy-page-bg::before {
+            content: '';
+            position: absolute;
+            inset: -15%;
+            background: radial-gradient(ellipse 70% 55% at 70% 38%, var(--hero-glow) 0%, transparent 68%);
+            opacity: 0.4;
+            animation: buyGlow 14s ease-in-out infinite;
+        }
+
+        .buy-page-bg::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.022) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 0, 0, 0.022) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse 80% 70% at 70% 40%, black 20%, transparent 75%);
+            opacity: 0.45;
+        }
+
+        @keyframes buyGlow {
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.55; transform: scale(1.03); }
+        }
+
+        .checkout-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            z-index: 100;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 0 20px;
+            background: var(--hero-tint);
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .checkout-back {
+            justify-self: start;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            transition: opacity 0.2s ease, color 0.2s ease;
+        }
+
+        .checkout-back:hover {
+            opacity: 1;
+            color: var(--hero-accent);
+        }
+
+        .checkout-logo {
+            justify-self: center;
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.38em;
+            text-indent: 0.38em;
+            text-transform: uppercase;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .checkout-main {
+            position: relative;
+            z-index: 1;
+            padding: 32px 20px 48px;
+            min-height: calc(100vh - 70px);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .buy-container {
+            width: 100%;
+            max-width: 980px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.07);
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            animation: checkoutIn 0.55s ease-out;
+        }
+
+        @keyframes checkoutIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .order-summary-side {
+            padding: 40px 36px;
+            border-right: 1px solid var(--border);
+            max-height: min(85vh, 720px);
+            overflow-y: auto;
+        }
+
+        .order-summary-side h2,
+        .buyer-form h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin: 0 0 28px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .buy-item {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .buy-item img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .buy-item h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            margin: 0 0 4px;
+            font-weight: 600;
+        }
+
+        .buy-item p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .qty-btn {
+            width: 26px;
+            height: 26px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .qty-btn:hover {
+            border-color: var(--hero-accent);
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .qty-val {
+            font-size: 0.88rem;
+            font-weight: 600;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .price-summary {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .price-summary p {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+
+        .price-summary .total {
+            margin-top: 16px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            color: var(--text-main);
+        }
+
+        .price-summary .total p {
+            color: var(--text-main);
+            font-size: 1.35rem;
+            margin: 0;
+        }
+
+        .buyer-form {
+            padding: 40px 36px;
+        }
+
+        .input-group { margin-bottom: 18px; }
+
+        .buyer-form input,
+        .buyer-form select {
+            width: 100%;
+            padding: 14px 0;
+            border: none;
+            border-bottom: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            appearance: none;
+        }
+
+        .buyer-form input::placeholder { color: #999; }
+
+        .buyer-form input:focus,
+        .buyer-form select:focus {
+            border-bottom-color: var(--hero-accent);
+        }
+
+        .buyer-form select option {
+            background: #fff;
+            color: var(--text-main);
+        }
+
+        .confirm-btn {
+            width: 100%;
+            margin-top: 24px;
+            padding: 18px 20px;
+            border: none;
+            background: var(--hero-accent);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.25s ease, letter-spacing 0.25s ease;
+        }
+
+        .confirm-btn:hover:not(:disabled) {
+            background: var(--hero-accent-dark);
+            letter-spacing: 0.22em;
+        }
+
+        .confirm-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .confirmation-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 32px;
+        }
+
+        .confirmation-message h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            margin-bottom: 16px;
+        }
+
+        .confirmation-message p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .empty-cart-msg {
+            padding: 24px 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .checkout-footer {
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border-top: 1px solid #e6e6e4;
+            padding: 28px 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            letter-spacing: 0.04em;
+        }
+
+        @media (max-width: 860px) {
+            .buy-container { grid-template-columns: 1fr; }
+            .order-summary-side {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                max-height: none;
+            }
+            .checkout-main { padding: 20px 16px 32px; }
+            .order-summary-side,
+            .buyer-form { padding: 28px 22px; }
+        }
+    </style>
+</head>
+<body class="buy-page buy-theme-default" id="buyPageBody">
+<script>
+(function () {
+    try {
+        var cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        var direct = localStorage.getItem('selectedWatch');
+        var watches = cart.length > 0 ? cart : (direct ? [JSON.parse(direct)] : []);
+        var color = watches[0] && watches[0].color;
+        var c = (color || '').trim().toLowerCase();
+        var body = document.getElementById('buyPageBody');
+        if (!body) return;
+        body.classList.remove('buy-theme-gold', 'buy-theme-silver', 'buy-theme-black', 'buy-theme-default');
+        if (c === 'gold') body.classList.add('buy-theme-gold');
+        else if (c === 'silver') body.classList.add('buy-theme-silver');
+        else if (c === 'black') body.classList.add('buy-theme-black');
+        else body.classList.add('buy-theme-default');
+    } catch (e) {}
+})();
+</script>
+
+<div class="buy-page-bg" aria-hidden="true"></div>
+
+<header class="checkout-nav">
+    <a class="checkout-back" href="javascript:history.back()">← Kthehu</a>
+    <a class="checkout-logo" th:href="@{/}">DELUXE</a>
+</header>
+
+<main class="checkout-main">
+    <div class="buy-container">
+        <div class="order-summary-side" id="summarySide">
+            <h2>Zgjedhja Juaj</h2>
+            <div id="watchSummary"></div>
+            <div class="price-summary" id="priceSummary"></div>
+        </div>
+
+        <form id="buyerForm" class="buyer-form">
+            <h2>Detajet e Porosisë</h2>
+            <div class="input-group"><input type="text" placeholder="Emri" id="firstName" required /></div>
+            <div class="input-group"><input type="text" placeholder="Mbiemri" id="lastName" required /></div>
+            <div class="input-group"><input type="email" placeholder="Adresa Email" id="email" required /></div>
+            <div class="input-group"><input type="text" placeholder="Numri i Telefonit" id="phoneNumber" required /></div>
+            <div class="input-group">
+                <select id="country" required onchange="renderOrder()">
+                    <option value="Kosova" selected>Kosova</option>
+                    <option value="Albania">Albania</option>
+                    <option value="Macedonia">Macedonia</option>
+                </select>
+            </div>
+            <div class="input-group"><input type="text" placeholder="Qyteti" id="city" required /></div>
+            <div class="input-group"><input type="text" placeholder="Adresa e Dërgimit" id="address" required /></div>
+            <button type="submit" class="confirm-btn" id="submitBtn">Konfirmo Blerjen</button>
+        </form>
+
+        <div class="confirmation-message" id="confirmationMessage" style="display: none;">
+            <h2>Ju faleminderit.</h2>
+            <p>Porosia juaj është pranuar me sukses dhe po përgatitet për dërgim.</p>
+            <button type="button" class="confirm-btn" style="width: auto; padding: 14px 36px; margin-top: 32px;" onclick="window.location.href='/'">Kthehu te Dyqani</button>
+        </div>
+    </div>
+</main>
+
+<footer class="checkout-footer">&copy; 2026 Deluxe</footer>
+
+<script th:inline="javascript">
+    let currentWatches = [];
+
+    function applyBuyTheme(color) {
+        const normalized = (color || '').trim().toLowerCase();
+        document.body.classList.remove('buy-theme-gold', 'buy-theme-silver', 'buy-theme-black', 'buy-theme-default');
+        if (normalized === 'gold') document.body.classList.add('buy-theme-gold');
+        else if (normalized === 'silver') document.body.classList.add('buy-theme-silver');
+        else if (normalized === 'black') document.body.classList.add('buy-theme-black');
+        else document.body.classList.add('buy-theme-default');
+    }
+
+    function loadCheckoutItems() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const directWatch = localStorage.getItem('selectedWatch');
+
+        if (cart.length > 0) {
+            return cart.map(item => ({ ...item, quantity: item.quantity || 1 }));
+        }
+        if (directWatch) {
+            const parsed = JSON.parse(directWatch);
+            parsed.quantity = parsed.quantity || 1;
+            return [parsed];
+        }
+        return [];
+    }
+
+    function renderOrder() {
+        const watchSummary = document.getElementById('watchSummary');
+        const priceSummary = document.getElementById('priceSummary');
+        const country = document.getElementById('country').value;
+        let subtotal = 0;
+        let shipping = (country === 'Albania' || country === 'Macedonia') ? 5 : 0;
+
+        watchSummary.innerHTML = '';
+
+        currentWatches.forEach((watch, index) => {
+            const price = parseFloat(String(watch.price).replace(/[^\d.]/g, '')) || 0;
+            const qty = watch.quantity || 1;
+            subtotal += price * qty;
+
+            const imgUrl = watch.imageUrl || watch.image || '';
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'buy-item';
+            itemDiv.innerHTML = `
+                <img src="${imgUrl}" alt="${watch.name || 'Watch'}" onerror="this.style.visibility='hidden'"/>
+                <div class="buy-item-info">
+                    <h4>${watch.name || 'Watch'}</h4>
+                    <p>${price.toLocaleString()} €</p>
+                    <div class="qty-controls">
+                        <button type="button" class="qty-btn" onclick="changeQty(${index}, -1)">−</button>
+                        <span class="qty-val">${qty}</span>
+                        <button type="button" class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                </div>`;
+            watchSummary.appendChild(itemDiv);
+        });
+
+        const total = subtotal + shipping;
+        priceSummary.innerHTML = `
+            <p>Nëntotali <span>${subtotal.toLocaleString()} €</span></p>
+            <p>Transporti <span>${shipping === 0 ? 'FALAS' : shipping + ' €'}</span></p>
+            <div class="total"><p>Totali <span>${total.toLocaleString()} €</span></p></div>`;
+
+        return total;
+    }
+
+    window.changeQty = function(index, delta) {
+        const newQty = (currentWatches[index].quantity || 1) + delta;
+        if (newQty < 1) return;
+        currentWatches[index].quantity = newQty;
+        renderOrder();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        currentWatches = loadCheckoutItems();
+
+        if (currentWatches.length === 0) {
+            document.getElementById('watchSummary').innerHTML = '<p class="empty-cart-msg">Shporta juaj është e zbrazët.</p>';
+            document.getElementById('buyerForm').style.display = 'none';
+            return;
+        }
+
+        applyBuyTheme(currentWatches[0].color);
+        renderOrder();
+
+        document.getElementById('buyerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerText;
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Duke u procesuar...';
+
+            const finalTotal = renderOrder();
+
+            const orderData = {
+                fullName: document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                address: document.getElementById('country').value + ', ' + document.getElementById('city').value + ', ' + document.getElementById('address').value.trim(),
+                totalPrice: finalTotal,
+                items: currentWatches.map(w => ({
+                    name: `${w.name} (x${w.quantity || 1})`,
+                    price: (parseFloat(String(w.price).replace(/[^\d.]/g, '')) * (w.quantity || 1)).toString(),
+                    imageUrl: w.imageUrl || w.image || '',
+                    color: w.color || ''
+                }))
+            };
+
+            fetch('/api/orders/place', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        localStorage.removeItem('selectedWatch');
+                        localStorage.removeItem('cart');
+                        document.getElementById('buyerForm').style.display = 'none';
+                        document.getElementById('summarySide').style.display = 'none';
+                        document.getElementById('confirmationMessage').style.display = 'block';
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        alert('Ndodhi një gabim gjatë procesimit të porosisë.');
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalText;
+                    }
+                })
+                .catch(() => {
+                    alert('Lidhja me serverin dështoi.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalText;
+                });
+        });
+    });
+</script>
+</body>
+</html>
