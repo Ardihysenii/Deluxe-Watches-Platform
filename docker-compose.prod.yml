@@ -1,0 +1,11 @@
+services:
+  deluxe-watches:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deluxe-watches
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
